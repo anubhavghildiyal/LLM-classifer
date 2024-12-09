@@ -10,9 +10,10 @@ load_dotenv()
 # Access the OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-def classify_custom(dataset, labels, few_shot_examples, batch_size=10):
+def classify_custom(dataset, labels, few_shot_examples, batch_size=10, max_retries=3):
     """
     Classify the dataset in batches, with each batch containing a maximum of `batch_size` rows.
+    If predictions are missing or invalid, the batch is retried up to `max_retries` times.
     """
     results = []
     num_rows = len(dataset)
@@ -22,7 +23,6 @@ def classify_custom(dataset, labels, few_shot_examples, batch_size=10):
     for i in range(0, num_rows, batch_size):
         batch = dataset.iloc[i:i + batch_size]
         print('batch created....', i)
-        # Construct the prompt for the batch
         batch_prompts = []
         for _, row in batch.iterrows():
             input_text = row["text"]
@@ -30,72 +30,76 @@ def classify_custom(dataset, labels, few_shot_examples, batch_size=10):
 
         # Generate a single prompt for the batch
         formatted_labels = "\n".join(
-            [f" {label['id']}: {label['description']}" for i, label in enumerate(labels)]
+            [f" {label['id']}: {label['description']}" for label in labels]
         )
         prompt = (
             f"Classify the following inputs into one of these labels:\n{formatted_labels}.\n\n"
             "Examples:\n"
         )
         print('prompt created')
-        # Add few-shot examples to the prompt
-        for example_num, example in enumerate(few_shot_examples):
+        for example in few_shot_examples:
             prompt += f"Input: {example['input']}\nLabel: {example['label']}\n\n"
 
         print('few shot examples added')
-        # Add batch inputs to the prompt
         prompt += "Inputs:\n"
         for text in batch_prompts:
             prompt += f"Input: {text}\n"
 
         print('batch inputs added')
-        
-        # Call the LLM API to classify the batch
-        try:
-            # Debugger to inspect inputs
-            # pdb.set_trace()
-            response = client.chat.completions.create(
-                # model="gpt-4o-mini",  # Replace with the appropriate model
-                model="gpt-4o",  # Replace with the appropriate model
-                messages=[
-                    {"role": "system", "content": "You are a classification assistant. Classify the following inputs based on the provided labels and descriptions."},
-                    {"role": "user", "content": prompt}  # `prompt` contains the input text and few-shot examples
-                ],
-                max_tokens=5000,  # Adjust based on the expected response length
-                temperature=0.1  # Lower temperature for deterministic outputs
-            )
-            print('response received')
-            # Parse LLM's response
-            response_text = response.choices[0].message.content.strip()
-            print('response parsed')
-            # Split the response by double newlines to separate each "Input-Label" pair
-            entries = response_text.strip().split("\n\n")
 
-            # Iterate through each entry to extract the input and label
-            for entry in entries:
-                # Split by newline to separate the input and label lines
-                lines = entry.split("\n")
-    
-                # Extract the input text and label
-                input_text = lines[0].replace("Input: ", "").strip()
-                label = lines[1].replace("Label: ", "").strip()
-                
-                # Append the result
-                results.append({"input": input_text, "prediction": label})
-            print('results appended')
-            # pdb.set_trace()
+        # Retry mechanism for invalid predictions
+        retries = 0
+        while retries < max_retries:
+            try:
+                # Call the LLM API to classify the batch
+                response = client.chat.completions.create(
+                    model="gpt-4o",  # Replace with the appropriate model
+                    messages=[
+                        {"role": "system", "content": "You are a classification assistant. Classify the following inputs based on the provided labels and descriptions."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=5000,
+                    temperature=0.1
+                )
+                print('response received')
 
-        except Exception as e:
-            print(f"Error processing batch: {e}")
-            for text in batch_prompts:
-                results.append({"input": text, "prediction": "Error"})
+                # Parse LLM's response
+                response_text = response.choices[0].message.content.strip()
+                print('response parsed')
 
-        if i == 800:
+                # Split the response by double newlines to separate each "Input-Label" pair
+                entries = response_text.strip().split("\n\n")
+
+                # Validate predictions
+                if len(entries) != len(batch_prompts):
+                    raise ValueError("Mismatch in number of predictions. Retrying batch.")
+
+                # Iterate through each entry to extract the input and label
+                for entry in entries:
+                    lines = entry.split("\n")
+                    input_text = lines[0].replace("Input: ", "").strip()
+                    label = lines[1].replace("Label: ", "").strip()
+
+                    # Check if label is valid
+                    if label not in [str(label['id']) for label in labels]:
+                        raise ValueError(f"Invalid label: {label}. Retrying batch.")
+
+                    # Append the result
+                    results.append({"input": input_text, "prediction": label})
+
+                print('results appended')
+                break  # Exit retry loop if successful
+
+            except Exception as e:
+                retries += 1
+                print(f"Error processing batch (Attempt {retries}/{max_retries}): {e}")
+                if retries == max_retries:
+                    print("Max retries reached. Marking predictions as 'Error'.")
+                    for text in batch_prompts:
+                        results.append({"input": text, "prediction": "Error"})
+
+        if i == 1000:
             break
-        # Simulating classification for now
-        # batch_results = [{"input": text, "classification": "yes"} for text in batch_prompts]
-
-        # Append results to the main results list
-        # results.extend(batch_results)
 
     return results
 

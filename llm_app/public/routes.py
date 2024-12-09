@@ -75,6 +75,7 @@ def user_query_classification():
     predictions = classify_custom(dataset, labels, few_shot_examples)
     end_time = time.time()
     print(f"Time taken: {end_time - start_time} seconds")
+    pdb.set_trace()
     prediction_labels = [int(prediction["prediction"]) for prediction in predictions]
     
     # Log the results before returning
