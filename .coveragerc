@@ -1,0 +1,6 @@
+[run]
+source = llm_app
+omit = 
+    tests/*
+    autoapp.py
+

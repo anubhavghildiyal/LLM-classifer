@@ -1,0 +1,102 @@
+.
+├── Dockerfile
+├── LICENSE
+├── Procfile
+├── README.md
+├── __pycache__
+│   └── autoapp.cpython-310.pyc
+├── app.json
+├── assets
+│   ├── css
+│   │   └── style.css
+│   ├── img
+│   │   └── favicon.ico
+│   └── js
+│       ├── main.js
+│       ├── plugins.js
+│       └── script.js
+├── autoapp.py
+├── dev.db
+├── docker-compose.yml
+├── llm_app
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-310.pyc
+│   │   ├── app.cpython-310.pyc
+│   │   ├── commands.cpython-310.pyc
+│   │   ├── compat.cpython-310.pyc
+│   │   ├── database.cpython-310.pyc
+│   │   ├── extensions.cpython-310.pyc
+│   │   ├── settings.cpython-310.pyc
+│   │   └── utils.cpython-310.pyc
+│   ├── app.py
+│   ├── commands.py
+│   ├── compat.py
+│   ├── database.py
+│   ├── extensions.py
+│   ├── public
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── classification_logic.cpython-310.pyc
+│   │   │   ├── forms.cpython-310.pyc
+│   │   │   ├── routes.cpython-310.pyc
+│   │   │   └── views.cpython-310.pyc
+│   │   ├── classification_logic.py
+│   │   ├── forms.py
+│   │   ├── routes.py
+│   │   └── views.py
+│   ├── settings.py
+│   ├── static
+│   │   └── build
+│   ├── templates
+│   │   ├── 401.html
+│   │   ├── 404.html
+│   │   ├── 500.html
+│   │   ├── footer.html
+│   │   ├── layout.html
+│   │   ├── nav.html
+│   │   ├── public
+│   │   │   ├── about.html
+│   │   │   ├── home.html
+│   │   │   └── register.html
+│   │   └── users
+│   │       └── members.html
+│   ├── user
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── forms.cpython-310.pyc
+│   │   │   ├── models.cpython-310.pyc
+│   │   │   └── views.cpython-310.pyc
+│   │   ├── forms.py
+│   │   ├── models.py
+│   │   └── views.py
+│   ├── utils.py
+│   └── webpack
+├── package.json
+├── pyproject.toml
+├── requirements
+│   ├── dev.txt
+│   └── prod.txt
+├── requirements.txt
+├── setup.cfg
+├── shell_scripts
+│   ├── auto_pipenv.sh
+│   └── supervisord_entrypoint.sh
+├── structure.txt
+├── supervisord.conf
+├── supervisord_programs
+│   └── gunicorn.conf
+├── tests
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── factories.py
+│   ├── settings.py
+│   ├── test_database.py
+│   ├── test_forms.py
+│   ├── test_functional.py
+│   └── test_models.py
+└── webpack.config.js
+
+22 directories, 78 files
